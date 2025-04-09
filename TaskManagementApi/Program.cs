@@ -1,3 +1,7 @@
+using TaskManagementApi.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Sqlite;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,7 +12,18 @@ builder.Services.AddSwaggerGen();
 //enable controllers
 builder.Services.AddControllers();
 
+
+//register sqlite connection 
+builder.Services.AddDbContext<TaskDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection")));
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
+    dbContext.Database.EnsureCreated(); // Creates the database and table if they don’t exist
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
